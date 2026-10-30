@@ -903,7 +903,7 @@
     }
   ],
   "total": 1957,
-  "updated": "2026-10-30T14:55:50+08:00",
+  "updated": "2026-10-30T14:56:26+08:00",
   "sources": [
     "https://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date=20261030&type=ALLBUT0999",
     "https://openapi.twse.com.tw/v1/opendata/t187ap03_L",
