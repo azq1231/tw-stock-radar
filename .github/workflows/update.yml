@@ -1,0 +1,31 @@
+name: Update official stock closing data
+on:
+  workflow_dispatch:
+  schedule:
+    # Taiwan time 15:00–20:30, trading days. Covers late official publications.
+    - cron: "0,30 7-12 * * 1-5"
+permissions:
+  contents: write
+concurrency:
+  group: tw-stocks-close
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install requests
+      - run: python update_data.py
+      - name: Commit fresh data and update status
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.json status.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Update TWSE/TPEx verified closing data"
+            git push
+          fi
