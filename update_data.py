@@ -28,11 +28,24 @@ def main():
     timestamp=now.isoformat(timespec="seconds")
     status={"last_checked":timestamp,"state":"checking"}
     try:
-        otc=fetch("https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes")
-        otc_rows=[x for x in otc if iscommon(x.get("SecuritiesCompanyCode"))]
-        dates={x.get("Date") for x in otc_rows}
-        if len(dates)!=1:raise ValueError("櫃買中心行情日期不一致")
-        otc_day=asdate(next(iter(dates)))
+        # Prefer the official date-specific after-trading report: the TPEx OpenAPI
+        # quote feed may lag behind by one day even after today's report is published.
+        day=now.date().isoformat()
+        roc=f"{now.year-1911:03d}/{now.month:02d}/{now.day:02d}"
+        otc_url="https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?response=json&date="+roc.replace("/","%2F")
+        report=fetch(otc_url)
+        tab=next((t for t in report.get("tables",[]) if t.get("title")=="上櫃股票行情"),None)
+        if tab and int(tab.get("listedCompanies",0))>700 and len(tab.get("data",[]))>800:
+            otc_day=day
+            otc_rows=[r for r in tab["data"] if len(r)>=16 and iscommon(r[0])]
+        else:
+            otc=fetch("https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes")
+            old_rows=[x for x in otc if iscommon(x.get("SecuritiesCompanyCode"))]
+            dates={x.get("Date") for x in old_rows}
+            if len(dates)!=1:raise ValueError("櫃買中心行情日期不一致")
+            otc_day=asdate(next(iter(dates)))
+            otc_rows=[[x.get("SecuritiesCompanyCode"),x.get("CompanyName"),x.get("Close"),x.get("Change"),None,None,None,None,None,None,None,None,None,None,None,x.get("Capitals")] for x in old_rows]
+            otc_url="https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes"
         status["tpex_date"]=otc_day
         tw_today=load_twse(now.date().isoformat()) if now.weekday()<5 else None
         status["twse_today_available"]=bool(tw_today and len(tw_today.get("data",[]))>1000)
@@ -55,10 +68,10 @@ def main():
             listing.append({"code":c,"name":str(r[1]),"market":"上市","price":p,"pct":round(chg/(p-chg)*100,3),"cap":round(p*sh)})
         over=[]
         for r in otc_rows:
-            c=str(r["SecuritiesCompanyCode"])
-            p=n(r.get("Close"));chg=n(r.get("Change"));sh=n(r.get("Capitals"))
+            c=str(r[0])
+            p=n(r[2]);chg=n(r[3]);sh=n(r[15])
             if p is None or chg is None or not sh or p<=0 or p-chg<=0:continue
-            over.append({"code":c,"name":str(r.get("CompanyName")),"market":"上櫃","price":p,"pct":round(chg/(p-chg)*100,3),"cap":round(p*sh)})
+            over.append({"code":c,"name":str(r[1]),"market":"上櫃","price":p,"pct":round(chg/(p-chg)*100,3),"cap":round(p*sh)})
         if len(listing)<900 or len(over)<500:raise ValueError("上市或上櫃普通股資料筆數不足")
         combined={r["code"]:r for r in listing+over}
         if len(combined)<1500:raise ValueError("可排名股票過少，拒絕公布")
@@ -67,7 +80,7 @@ def main():
         result={"date":otc_day,"stocks":top,"total":len(combined),"updated":timestamp,
         "sources":["https://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date="+otc_day.replace("-","")+"&type=ALLBUT0999",
         "https://openapi.twse.com.tw/v1/opendata/t187ap03_L",
-        "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes"],
+        otc_url],
         "market":"上市及上櫃普通股收盤資料，非盤中",
         "alerts5":len([x for x in top if x["pct"]<=-5])}
         previous=ROOT/"data.json"

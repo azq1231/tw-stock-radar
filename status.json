@@ -1,8 +1,8 @@
 {
-  "last_checked": "2026-10-30T14:31:11+08:00",
-  "state": "latest_verified",
-  "tpex_date": "2026-10-29",
+  "last_checked": "2026-10-30T14:55:50+08:00",
+  "state": "ready",
+  "tpex_date": "2026-10-30",
   "twse_today_available": true,
-  "verified_date": "2026-10-29",
-  "message": "今日兩市場收盤資料尚未全部公布；顯示最近共同可驗證的交易日 2026-10-29"
+  "verified_date": "2026-10-30",
+  "message": "當天兩市場收盤資料已核對"
 }
