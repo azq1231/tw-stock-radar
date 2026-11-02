@@ -903,11 +903,11 @@
     }
   ],
   "total": 1946,
-  "updated": "2026-11-02T19:36:05+08:00",
+  "updated": "2026-11-03T04:44:32+08:00",
   "sources": [
     "https://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date=20261102&type=ALLBUT0999",
     "https://openapi.twse.com.tw/v1/opendata/t187ap03_L",
-    "https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?response=json&date=115%2F11%2F02"
+    "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes"
   ],
   "market": "上市及上櫃普通股收盤資料，非盤中",
   "alerts5": 1
