@@ -4,7 +4,7 @@ on:
   schedule:
     # UTC 06:00-09:45 = Asia/Taipei 14:00-17:45 on trading weekdays.
     # Check every 15 minutes; publish only same-date verified ranking.
-    - cron: "7,22,37,52 6-10 * * 1-5"
+    - cron: "7,22,37,52 6-12 * * 1-5"
 permissions:
   contents: write
 concurrency:
