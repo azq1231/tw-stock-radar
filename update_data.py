@@ -35,7 +35,7 @@ def main():
         otc_url="https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?response=json&date="+roc.replace("/","%2F")
         report=fetch(otc_url)
         tab=next((t for t in report.get("tables",[]) if t.get("title")=="上櫃股票行情"),None)
-        if tab and int(tab.get("listedCompanies",0))>700 and len(tab.get("data",[]))>800:
+        if (report.get("date")==day.replace("-","") and tab and int(tab.get("listedCompanies",0))>700 and len(tab.get("data",[]))>800):
             otc_day=day
             otc_rows=[r for r in tab["data"] if len(r)>=16 and iscommon(r[0])]
         else:
@@ -47,6 +47,8 @@ def main():
             otc_rows=[[x.get("SecuritiesCompanyCode"),x.get("CompanyName"),x.get("Close"),x.get("Change"),None,None,None,None,None,None,None,None,None,None,None,x.get("Capitals")] for x in old_rows]
             otc_url="https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes"
         status["tpex_date"]=otc_day
+        status["tpex_source"]=otc_url
+        status["tpex_raw_rows"]=len(otc_rows)
         tw_today=load_twse(now.date().isoformat()) if now.weekday()<5 else None
         status["twse_today_available"]=bool(tw_today and len(tw_today.get("data",[]))>1000)
         tw=tw_today if otc_day==now.date().isoformat() and status["twse_today_available"] else load_twse(otc_day)
