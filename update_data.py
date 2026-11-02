@@ -72,7 +72,10 @@ def main():
             p=n(r[2]);chg=n(r[3]);sh=n(r[15])
             if p is None or chg is None or not sh or p<=0 or p-chg<=0:continue
             over.append({"code":c,"name":str(r[1]),"market":"上櫃","price":p,"pct":round(chg/(p-chg)*100,3),"cap":round(p*sh)})
-        if len(listing)<900 or len(over)<500:raise ValueError("上市或上櫃普通股資料筆數不足")
+        status["twse_valid_rows"]=len(listing)
+        status["tpex_valid_rows"]=len(over)
+        status["tpex_source"]=otc_url
+        if len(listing)<900 or len(over)<500:raise ValueError(f"上市或上櫃普通股資料筆數不足：上市={len(listing)}，上櫃={len(over)}")
         combined={r["code"]:r for r in listing+over}
         if len(combined)<1500:raise ValueError("可排名股票過少，拒絕公布")
         top=sorted(combined.values(),key=lambda x:x["cap"],reverse=True)[:100]
@@ -97,6 +100,7 @@ def main():
     except Exception as e:
         status["state"]="error"
         status["message"]=str(e)
+        status["error_type"]=type(e).__name__
         print("ERROR",e,file=sys.stderr)
     (ROOT/"status.json").write_text(json.dumps(status,ensure_ascii=False,indent=2),encoding="utf-8")
     if status["state"]=="error":sys.exit(1)
