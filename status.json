@@ -1,8 +1,12 @@
 {
-  "last_checked": "2026-10-30T21:36:52+08:00",
+  "last_checked": "2026-11-02T19:08:21+08:00",
   "state": "ready",
-  "tpex_date": "2026-10-30",
+  "tpex_date": "2026-11-02",
+  "tpex_source": "https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?response=json&date=115%2F11%2F02",
+  "tpex_raw_rows": 893,
   "twse_today_available": true,
-  "verified_date": "2026-10-30",
+  "twse_valid_rows": 1085,
+  "tpex_valid_rows": 861,
+  "verified_date": "2026-11-02",
   "message": "當天兩市場收盤資料已核對"
 }
