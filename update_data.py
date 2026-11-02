@@ -20,7 +20,7 @@ def asdate(roc):
 def load_twse(day):
     ds=day.replace("-","")
     j=fetch("https://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date="+ds+"&type=ALLBUT0999")
-    target=f"{int(ds[:4])-1911}年{int(ds[4:6])}月{int(ds[6:8])}日"
+    target=f"{int(ds[:4])-1911}年{int(ds[4:6]):02d}月{int(ds[6:8]):02d}日"
     t=next((z for z in j.get("tables",[]) if "每日收盤行情" in z.get("title","") and target in z.get("title","") and "收盤價" in z.get("fields",[])),None)
     return t
 def main():
