@@ -3,9 +3,12 @@
 import json, re, datetime, pathlib, sys
 from zoneinfo import ZoneInfo
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 ROOT=pathlib.Path(__file__).resolve().parent
 SESS=requests.Session()
 SESS.headers.update({"User-Agent":"Mozilla/5.0 (Taiwan daily stock dashboard; public market data)"})
+SESS.mount("https://",HTTPAdapter(max_retries=Retry(total=3,backoff_factor=1,status_forcelist=[429,500,502,503,504],allowed_methods=["GET"])))
 def fetch(url):
     r=SESS.get(url,timeout=40)
     r.raise_for_status()
@@ -33,9 +36,13 @@ def main():
         day=now.date().isoformat()
         roc=f"{now.year-1911:03d}/{now.month:02d}/{now.day:02d}"
         otc_url="https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?response=json&date="+roc.replace("/","%2F")
-        report=fetch(otc_url)
+        try:
+            report=fetch(otc_url)
+        except (requests.RequestException,ValueError) as ex:
+            status["tpex_daily_report_error"]=str(ex)
+            report={}
         tab=next((t for t in report.get("tables",[]) if t.get("title")=="上櫃股票行情"),None)
-        if (report.get("date")==day.replace("-","") and tab and int(tab.get("listedCompanies",0))>700 and len(tab.get("data",[]))>800):
+        if (report.get("date")==day.replace("-","") and tab and len(tab.get("data",[]))>800 and sum(1 for r in tab["data"] if len(r)>=16 and iscommon(r[0]))>500):
             otc_day=day
             otc_rows=[r for r in tab["data"] if len(r)>=16 and iscommon(r[0])]
         else:
@@ -54,6 +61,13 @@ def main():
         tw=tw_today if otc_day==now.date().isoformat() and status["twse_today_available"] else load_twse(otc_day)
         if not tw or len(tw.get("data",[]))<950:raise ValueError("證交所對應交易日完整收盤資料尚未發布")
         company=fetch("https://openapi.twse.com.tw/v1/opendata/t187ap03_L")
+        share_dates={str(x.get("出表日期","")).strip() for x in company if iscommon(x.get("公司代號"))}
+        if len(share_dates)!=1 or not re.fullmatch(r"[0-9]{7}",next(iter(share_dates))):
+            raise ValueError(f"上市發行股數出表日期無法核對: {share_dates}")
+        shares_asof=asdate(next(iter(share_dates)))
+        age=(datetime.date.fromisoformat(otc_day)-datetime.date.fromisoformat(shares_asof)).days
+        status["twse_shares_asof"]=shares_asof
+        if age<0 or age>10:raise ValueError(f"上市發行股數日期異常，行情={otc_day}，股數={shares_asof}，落差={age}天")
         issued={str(x.get("公司代號")):n(x.get("已發行普通股數或TDR原股發行股數")) for x in company}
         listing=[]
         for r in tw["data"]:
@@ -82,7 +96,7 @@ def main():
         if len(combined)<1500:raise ValueError("可排名股票過少，拒絕公布")
         top=sorted(combined.values(),key=lambda x:x["cap"],reverse=True)[:100]
         for i,r in enumerate(top):r["rank"]=i+1
-        result={"date":otc_day,"stocks":top,"total":len(combined),"updated":timestamp,
+        result={"date":otc_day,"stocks":top,"total":len(combined),"updated":timestamp,"twse_shares_asof":shares_asof,
         "sources":["https://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date="+otc_day.replace("-","")+"&type=ALLBUT0999",
         "https://openapi.twse.com.tw/v1/opendata/t187ap03_L",
         otc_url],
@@ -97,7 +111,7 @@ def main():
         previous.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
         status["state"]="ready" if otc_day==now.date().isoformat() else "latest_verified"
         status["verified_date"]=otc_day
-        status["message"]="當天兩市場收盤資料已核對" if status["state"]=="ready" else ("今日兩市場收盤資料尚未全部公布；顯示最近共同可驗證的交易日 "+otc_day)
+        status["message"]=("兩市場收盤行情已核對；上市發行股數出表日 "+shares_asof) if status["state"]=="ready" else ("今日兩市場收盤資料尚未全部公布；最近共同可驗證交易日 "+otc_day+"；上市發行股數出表日 "+shares_asof)
         print("VERIFIED",otc_day,"total",len(combined),"alerts",result["alerts5"])
     except Exception as e:
         status["state"]="error"
