@@ -1,12 +1,12 @@
 {
-  "last_checked": "2026-11-03T22:02:33+08:00",
+  "last_checked": "2026-11-04T22:22:28+08:00",
   "state": "ready",
-  "tpex_date": "2026-11-03",
-  "tpex_source": "https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?response=json&date=115%2F11%2F03",
+  "tpex_date": "2026-11-04",
+  "tpex_source": "https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?response=json&date=115%2F11%2F04",
   "tpex_raw_rows": 893,
   "twse_today_available": true,
-  "twse_valid_rows": 1082,
-  "tpex_valid_rows": 873,
-  "verified_date": "2026-11-03",
+  "twse_valid_rows": 1088,
+  "tpex_valid_rows": 881,
+  "verified_date": "2026-11-04",
   "message": "當天兩市場收盤資料已核對"
 }
