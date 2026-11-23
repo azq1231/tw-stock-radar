@@ -1,13 +1,13 @@
 {
-  "last_checked": "2026-11-20T23:19:53+08:00",
-  "state": "ready",
-  "tpex_date": "2026-11-20",
-  "tpex_source": "https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?response=json&date=115%2F11%2F20",
+  "last_checked": "2026-11-24T01:56:45+08:00",
+  "state": "latest_verified",
+  "tpex_date": "2026-11-23",
+  "tpex_source": "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes",
   "tpex_raw_rows": 895,
-  "twse_today_available": true,
-  "twse_shares_asof": "2026-11-19",
-  "twse_valid_rows": 1086,
-  "tpex_valid_rows": 883,
-  "verified_date": "2026-11-20",
-  "message": "兩市場收盤行情已核對；上市發行股數出表日 2026-11-19"
+  "twse_today_available": false,
+  "twse_shares_asof": "2026-11-22",
+  "twse_valid_rows": 1087,
+  "tpex_valid_rows": 873,
+  "verified_date": "2026-11-23",
+  "message": "今日兩市場收盤資料尚未全部公布；最近共同可驗證交易日 2026-11-23；上市發行股數出表日 2026-11-22"
 }
